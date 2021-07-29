@@ -4,7 +4,7 @@
 
 <img src="https://user-images.githubusercontent.com/46613983/127424216-eb7ecd80-5409-4357-b52f-7491ac54fb0d.png">
 
-Stop having to press card browser and ctrl+i for every card and then <strong>wincing</strong> to see it's history of reviews
+Stop having to press card browser and ctrl+i for every card and then <strong>WINCING</strong> to see it's history of reviews
 
 <strong> FEATURES </strong>
 <ul> <li> Visualize previous card rating history in the reviewer at a glance. </li>
