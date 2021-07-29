@@ -11,4 +11,4 @@ Stop having to press card browser and ctrl+i for every card and then <strong>WIN
         <li> Hover over each review to see <strong> WHEN </strong> you reviewed it </li>
         <li> Immediately recognize which cards you struggle with and which cards you excel at. </li> 
         <li> Quickly get data on how often you have seen the card </li> </ul>
-<i> Addon Idea by <a href="https://forums.ankiweb.net/t/display-card-ratings-in-the-verse-side/11625/10" rel="nofollow">gbrl.sc</a> on the Anki Forums.  </i>
+<i> Addon Idea by <a href="https://forums.ankiweb.net/t/display-card-ratings-in-the-verse-side/11625" rel="nofollow">gbrl.sc</a> on the Anki Forums.  </i>
