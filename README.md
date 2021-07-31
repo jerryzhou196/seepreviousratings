@@ -10,6 +10,7 @@
 
 
 Stop having to press card browser and ctrl+i for every card and then <strong>WINCING</strong> to see it's history of reviews
+
 <strong> FEATURES </strong>
 <ul> <li> Visualize previous card rating history in the reviewer at a glance. </li>
         <li> Hover over each review to see <strong> WHEN </strong> you reviewed it </li>
