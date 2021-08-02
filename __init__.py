@@ -30,7 +30,6 @@ def init(card):
 
     if (len(rating_list) > 0):
         javascript = """
-
               $('#squares').append(
     
               '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s </span> </div>'
@@ -61,7 +60,7 @@ def init(card):
         if config["show-label"] == "true":
             container += ("""
                $('#legend').prepend(`
-                    <span class = "legend-label" > Card Rating <br> History </span>    <div class="vl">
+                    <span class = "legend-label" > Card Rating <br> History </span>   <div class="vl">
                         </div>
                 `)
             """)
@@ -78,12 +77,8 @@ def init(card):
 
                 ease = str(element[3] // 10) + "%" if (element[3] > 0) else "learning"
 
-                container += (javascript % (colors[element[0]], label[element[0]], datetime.datetime.fromtimestamp(element[1]/1000).strftime('%Y-%m-%d <br> %I:%M %p') ,ease , interval
-
-
-
-                                            ))
-
+                container += (javascript % (colors[element[0]], label[element[0]], datetime.datetime.fromtimestamp(element[1]/1000).strftime('%Y-%m-%d <br> %I:%M %p') ,ease,interval ))
+                
         zoom = config["size"]
 
         container += """ 
@@ -223,9 +218,3 @@ def findNearestTimeMultiple(seconds):
         return str(seconds // 86400) + " days"
     else:
         return str(seconds // 2.628e+6) + " months"
-
-
-
-
-
-
