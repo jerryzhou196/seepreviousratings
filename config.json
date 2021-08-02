@@ -1,11 +1,14 @@
 {
+
+  "size": "100%",
+  "vertical-position": "bottom",
+  "show-label": "true",
+  "constantly-show-addon": "true",
   "manually-forgot-color": "white",
   "rated-again-color": "#c03c1c",
   "rated-hard-color": "#D8A700",
   "rated-good-color": "#B9D870",
-  "rated-easy-color": "#006344",
-  "vertical-position": "bottom",
-  "show-label": "true"
-
+  "rated-easy-color": "#006344"
+  
 }
 
