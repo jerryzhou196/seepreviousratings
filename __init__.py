@@ -2,7 +2,7 @@ from aqt import gui_hooks
 from aqt import mw
 import datetime
 
-import aqt
+# import aqt
 
 config = mw.addonManager.getConfig(__name__)
 
@@ -22,20 +22,18 @@ label = {
     4: "Rated EASY on" # easy
 }
 
-
-
 def init(card):
-    id = card.id
-    truncation = 10 #to do
-    cmd = f"select ease, id from revlog where cid = '{id}' ORDER BY id ASC "
+    cmd = f"select ease, id, ivl, factor from revlog where cid = '{card.id}' ORDER BY id ASC "
     rating_list = mw.col.db.all(cmd)
 
     # aqt.utils.showText(str(rating_list))
+
     if (len(rating_list) > 0):
         javascript = """
+
               $('#squares').append(
     
-              '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s</span> </div>'
+              '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s </span> </div>'
     
               )
              """
@@ -45,16 +43,17 @@ def init(card):
         container = """
             (function(){
                 $('#legend').remove()
-                $('body').%s(`
-                
+                $("#legend-container").remove()
+                $('#qa').%s(`
+            
+            
                 <div id = "legend-container">
                    <div id = "legend">  
-                   
-                   <div id = "squares">
-                   
-                   </div> 
+                        <div id = "squares">
+                         </div> 
                     </div>
                 </div>
+               
                 `)
              
             """ % (combiner)
@@ -70,30 +69,25 @@ def init(card):
         for index, element in enumerate(rating_list):
             # aqt.utils.showText(str(element[1]))
             if (element[1] > 0):
-                container += (javascript % (colors[element[0]], label[element[0]], datetime.datetime.fromtimestamp(element[1]/1000).strftime('%Y-%m-%d <br> %I:%M %p')))
 
-        container += "})()"
 
-            # aqt.utils.showText(container)
+                if (element[2] <= 0):
+                    interval = findNearestTimeMultiple(abs(element[2])) + ""
+                else:
+                    interval = str(element[2]) + " days" if (element[2] < 30) else str(element[2] // 30) + " months"
 
-        mw.reviewer.web.eval(container)
+                ease = str(element[3] // 10) + "%" if (element[3] > 0) else "learning"
 
-def unInit(card):
-    mw.reviewer.web.eval("""
-      (function () {
-        $("#legend").remove()
-        })()
-    """)
+                container += (javascript % (colors[element[0]], label[element[0]], datetime.datetime.fromtimestamp(element[1]/1000).strftime('%Y-%m-%d <br> %I:%M %p') ,ease , interval
 
-def setUpLegend(new_state, old_state):
-       if (new_state == 'review'):
-           from aqt import mw
-           # aqt.utils.showText(str(dir(mw.reviewer)))
-           mw.reviewer.web.eval("""
-           (function () {
-             // innerHTML of style element is read-only. remove & recreate css
-             $('#legend-style').remove()
-             $('head').append(`
+
+
+                                            ))
+
+        zoom = config["size"]
+
+        container += """ 
+                $('head').append(`
                  <style id="legend-style">
                  .square {
                       height: 20px;
@@ -105,11 +99,9 @@ def setUpLegend(new_state, old_state):
                 #legend{
                     display: flex;
                     justify-content: center;
-                    float: %s;
                     border-radius: 5px;
                     width: max-content;
                     padding: 5px;
-                    margin: auto;
                     margin-top: 20px;
                     margin-bottom: 20px;
                     padding-left: 5px;
@@ -156,9 +148,7 @@ def setUpLegend(new_state, old_state):
                   border-style: solid;
                   border-color: transparent transparent black transparent;
                 }
-
-                
-                
+  
                 .tooltip:hover .tooltiptext {
                   visibility: visible;
                 }
@@ -184,6 +174,11 @@ def setUpLegend(new_state, old_state):
                 .night_mode .legend-label{
                     color: #75757A;
                 }
+                
+                #legend-container{
+                    display: flex;
+                    justify-content: center;
+                }
             
                  .vl {
                     border-left: 2px solid #75757A;
@@ -192,16 +187,45 @@ def setUpLegend(new_state, old_state):
                     align-self: center;
                     height: 29px;
                      }
-                
-        
-                </style>
-                  `)   
-           })()
-           """ )
+                </style>`
+                )  })() """
 
-gui_hooks.reviewer_did_show_question.append(unInit)
-gui_hooks.reviewer_did_show_answer.append(init)
-gui_hooks.state_did_change.append(setUpLegend)
+        # aqt.utils.showText(container)
+
+        mw.reviewer.web.eval(container)
+
+def unInit(card):
+    mw.reviewer.web.eval("""
+      (function () {
+        $("#legend-container").remove()
+        $("#legend").remove()
+        })()
+    """)
+
+if (config["constantly-show-addon"] == "true"):
+    gui_hooks.reviewer_did_show_question.append(init)
+    gui_hooks.reviewer_did_show_answer.append(init)
+
+
+else:
+    gui_hooks.reviewer_did_show_question.append(unInit)
+    gui_hooks.reviewer_did_show_answer.append(init)
+
+
+def findNearestTimeMultiple(seconds):
+    if (seconds < 60):
+        return str(seconds) + " secs"
+    elif (seconds < 3600):
+        return str(seconds // 60) + " mins"
+    elif (seconds < 86400):
+        return str(seconds // 3600) + " hours"
+    elif (seconds < 2.628e+6):
+        return str(seconds // 86400) + " days"
+    else:
+        return str(seconds // 2.628e+6) + " months"
+
+
+
 
 
 
