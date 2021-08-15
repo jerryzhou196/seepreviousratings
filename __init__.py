@@ -34,9 +34,9 @@ def init(card):
     cmd = f"select ease, id, ivl, factor,type from revlog where cid = '{card.id}' ORDER BY id ASC "
     rating_list = mw.col.db.all(cmd)
 
-    # aqt.utils.showText(str(rating_list))
+    showLearning = True if (config["show-learning-stage-reviews"] == "true" ) else False
 
-    if (len(rating_list) > 0):
+    if (len(rating_list) > 0): #check if a card has an previous ratings 
         combiner = "append" if (config["vertical-position"] == "bottom") else "prepend"
 
         container = """
@@ -75,40 +75,45 @@ def init(card):
             """)
 
         sched = mw.col.schedVer()
-        for index, element in enumerate(rating_list):
-            # aqt.utils.showText(str(element[1]))
+        for index, review in enumerate(rating_list):
 
-            #ease - element[0]
-            #id - element[1]
-            #ivl - element[2]
-            #factor - element[3]
-            #type - element [4]
+            rating = review[0]
+            timeInMs = review[1]
+            rawIvl = review[2]
+            rawEase = review[3]
+            rawRevType = review[4]
 
-            if (element[1] > 0): # check if the card rating time is valid
+            # "raw" means that the data still needs to be converted to a different format 
 
-                if (element[2] < 0):
-                    interval = findNearestTimeMultiple(abs(element[2])) + "" #convert interval to nearest multiple
+            if (timeInMs > 0 and (rawRevType != 0 or showLearning == True)): # check if the card rating time is valid
+                
+                if (rawIvl < 0): #if the interval is negative, it is expressed in seconds (learning steps)
+                    interval = findNearestTimeMultiple(abs(rawIvl)) + "" #convert seconds to nearest multiple
+                elif (rawIvl < 30): #if the interval is positive, it is expressed in days 
+                    interval = str(rawIvl) + " days"  
                 else:
-                    interval = str(element[2]) + " days" if (element[2] < 30) else str(element[2] // 30) + " months" #positive is only expressed in days
+                    interval = str(rawIvl // 30) + " months" 
 
-                ease = str(element[3] // 10) + "%" if (element[3] != 0) else "N/A"
+                if (rawEase != 0):
+                    ease = str(rawEase // 10) + "%"   
+                else:
+                    ease = "N/A"
 
-                if (sched == 1 and element[4] != 1 and element[0] != 1):
-                    off_set = int(element[0]) + 1
+                if (sched == 1 and rawRevType != 1 and rating != 1): #case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
+                    off_set = int(rating) + 1
                     color_id = colors[off_set]
                     label = labels[off_set]
                 else:
-                    color_id = colors[element[0]]
-                    label = labels[element[0]]
+                    color_id = colors[rating]
+                    label = labels[rating]
 
-                date = datetime.datetime.fromtimestamp(element[1]/1000).strftime('%Y-%m-%d <br> %I:%M %p')
+                date = datetime.datetime.fromtimestamp(timeInMs/1000).strftime('%Y-%m-%d <br> %I:%M %p')
 
                 # aqt.utils.showText(str(element[4]))
 
-                type = types[element[4]]
+                reviewType = types[rawRevType]
 
-
-                container += (javascript % (color_id, label, date ,ease, interval, type))
+                container += (javascript % (color_id, label, date, ease, interval, reviewType))
 
         container += """ 
                 $('head').append(`
@@ -199,6 +204,7 @@ def init(card):
                      }
                      
                 #legend{
+                    direction: ltr !important;
                     display: flex !important;
                     justify-content: center !important;
                     border-radius: 5px !important;
