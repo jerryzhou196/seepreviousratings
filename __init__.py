@@ -8,10 +8,10 @@ config = mw.addonManager.getConfig(__name__)
 
 colors = {
     0: config['manually-forgot-color'],
-    1: config['rated-again-color'], #again
-    2: config["rated-hard-color"], #hard
-    3: config["rated-good-color"], #good
-    4: config["rated-easy-color"] #easy
+    1: config['rated-again-color'],  # again
+    2: config["rated-hard-color"],  # hard
+    3: config["rated-good-color"],  # good
+    4: config["rated-easy-color"]  # easy
 }
 
 labels = {
@@ -19,7 +19,7 @@ labels = {
     1: "Rated AGAIN on",  # again
     2: "Rated HARD on",  # hard
     3: "Rated GOOD on",  # good
-    4: "Rated EASY on" # easy
+    4: "Rated EASY on"  # easy
 }
 
 types = {
@@ -30,13 +30,16 @@ types = {
     4: ""
 }
 
+
 def init(card):
     cmd = f"select ease, id, ivl, factor,type from revlog where cid = '{card.id}' ORDER BY id ASC "
     rating_list = mw.col.db.all(cmd)
 
-    showLearning = True if (config["show-learning-stage-reviews"] == "true" ) else False
+    regularMode = False if (config["only-show-learning-reviews-in-learning-stage"] == "true") else True
 
-    if (len(rating_list) > 0): #check if a card has an previous ratings 
+    n = len(rating_list)
+
+    if (n > 0):  # check if a card has an previous ratings
         combiner = "append" if (config["vertical-position"] == "bottom") else "prepend"
 
         container = """
@@ -60,9 +63,9 @@ def init(card):
         javascript = """
 
               $('#squares').append(
-    
+
               '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s <br> %s </span> </div>'
-    
+
               )
              """
 
@@ -75,7 +78,8 @@ def init(card):
             """)
 
         sched = mw.col.schedVer()
-        for index, review in enumerate(rating_list):
+
+        for review in rating_list:
 
             rating = review[0]
             timeInMs = review[1]
@@ -83,23 +87,25 @@ def init(card):
             rawEase = review[3]
             rawRevType = review[4]
 
-            # "raw" means that the data still needs to be converted to a different format 
+            # "raw" means that the data still needs to be converted to a different format
 
-            if (timeInMs > 0 and (rawRevType != 0 or showLearning == True)): # check if the card rating time is valid
-                
-                if (rawIvl < 0): #if the interval is negative, it is expressed in seconds (learning steps)
-                    interval = findNearestTimeMultiple(abs(rawIvl)) + "" #convert seconds to nearest multiple
-                elif (rawIvl < 30): #if the interval is positive, it is expressed in days 
-                    interval = str(rawIvl) + " days"  
+            if (timeInMs > 0 and (rawRevType != 0 or rating_list[n - 1][ 4] == 0 or regularMode == True)):  # check if the card rating time is valid
+
+                # if the review type is 0, the card is not in learning stage, and special mode is on
+
+                if (rawIvl < 0):  # if the interval is negative, it is expressed in seconds (learning steps)
+                    interval = findNearestTimeMultiple(abs(rawIvl)) + ""  # convert seconds to nearest multiple
+                elif (rawIvl < 30):  # if the interval is positive, it is expressed in days
+                    interval = str(rawIvl) + " days"
                 else:
-                    interval = str(rawIvl // 30) + " months" 
+                    interval = str(rawIvl // 30) + " months"
 
                 if (rawEase != 0):
-                    ease = str(rawEase // 10) + "%"   
+                    ease = str(rawEase // 10) + "%"
                 else:
                     ease = "N/A"
 
-                if (sched == 1 and rawRevType != 1 and rating != 1): #case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
+                if (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
                     off_set = int(rating) + 1
                     color_id = colors[off_set]
                     label = labels[off_set]
@@ -107,7 +113,7 @@ def init(card):
                     color_id = colors[rating]
                     label = labels[rating]
 
-                date = datetime.datetime.fromtimestamp(timeInMs/1000).strftime('%Y-%m-%d <br> %I:%M %p')
+                date = datetime.datetime.fromtimestamp(timeInMs / 1000).strftime('%Y-%m-%d <br> %I:%M %p')
 
                 # aqt.utils.showText(str(element[4]))
 
@@ -124,16 +130,16 @@ def init(card):
                       margin: 5px!important;
                       border-radius: 5px!important;
                   }
-                
+
                 .night_mode #legend{
                     background-color: #46464A!important;
                 }
-   
+
                 .tooltip {
                   position: relative!important;
                   display: inline-block!important;
                 }
-                
+
                 .tooltip .tooltiptext {
                   visibility: hidden!important;
                   width: 200px!important;
@@ -163,18 +169,18 @@ def init(card):
                   border-style: solid !important;
                   border-color: transparent transparent black transparent !important;
                 }
-  
+
                 .tooltip:hover .tooltiptext {
                   visibility: visible !important;
                 }
-                
+
                 #squares{
                     display: flex !important;
                     align-items: center !important;
                     max-width: 660px !important;
                     flex-wrap: wrap !important;
                 }
-                
+
                 .legend-label{
                     display: flex !important;
                     align-items: center !important;
@@ -185,16 +191,16 @@ def init(card):
                     padding-left: 8px !important;
                     color: #CACACA !important;
                 }
-                
+
                 .night_mode .legend-label{
                     color: #75757A !important;
                 }
-                
+
                 #legend-container{
                     display: flex !important;
                     justify-content: center !important;
                 }
-            
+
                  .vl {
                     border-left: 2px solid #75757A !important;
                     margin-left: 10px !important;
@@ -202,7 +208,7 @@ def init(card):
                     align-self: center !important;
                     height: 29px !important;
                      }
-                     
+
                 #legend{
                     direction: ltr !important;
                     display: flex !important;
@@ -217,7 +223,7 @@ def init(card):
                     border-radius: 10px !important;
                     background-color: #F0F0F0 !important;
                     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) !important;
-            
+                    line-height: normal !important;
                  """
 
         closing_tag = ''' } </style>` )  })() '''
@@ -225,7 +231,7 @@ def init(card):
         user_changeable = '''
             width: %s!important;
             zoom: %s!important;
-        ''' % ( config["width"], config["size"] )
+        ''' % (config["width"], config["size"])
 
         container += (user_changeable + closing_tag)
 
@@ -239,6 +245,7 @@ def init(card):
                       """
 
     mw.reviewer.web.eval(container)
+
 
 def unInit(card):
     mw.reviewer.web.eval("""
@@ -264,7 +271,7 @@ def findNearestTimeMultiple(seconds):
         return str(seconds // 60) + " mins"
     elif (seconds < 86400):
         return str(seconds // 3600) + " hours"
-    elif (seconds <  2592000) :
+    elif (seconds < 2592000):
         return str(seconds // 86400) + " days"
     else:
-        return str(seconds //  2592000) + " months"
+        return str(seconds // 2592000) + " months"
