@@ -69,15 +69,13 @@ def init(card):
               )
              """
 
-        if config["show-label"] == "true":
-            container += ("""
-               $('#legend').prepend(`
-                    <span class = "legend-label" > Card Rating <br> History </span>    <div class="vl">
-                        </div>
-                `)
-            """)
-
         sched = mw.col.schedVer()
+
+        # The total number of statistics
+        againSum = 0 # again
+        hardSum = 0 # hard
+        goodSum = 0 # good
+        easySum = 0 # easy
 
         for review in rating_list:
 
@@ -107,9 +105,11 @@ def init(card):
 
                 if (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
                     off_set = int(rating) + 1
+                    againSum, hardSum, goodSum, easySum = countNumberOfTimes(off_set, againSum, hardSum, goodSum, easySum)
                     color_id = colors[off_set]
                     label = labels[off_set]
                 else:
+                    againSum, hardSum, goodSum, easySum = countNumberOfTimes(rating, againSum, hardSum, goodSum, easySum)
                     color_id = colors[rating]
                     label = labels[rating]
 
@@ -120,6 +120,15 @@ def init(card):
                 reviewType = types[rawRevType]
 
                 container += (javascript % (color_id, label, date, ease, interval, reviewType))
+
+        if config["show-label"] == "true":
+            container += ("""
+               $('#legend').prepend(`
+                    <div class = "legend-label" > Card Rating <br> History (%s) <br> (%s-%s-%s-%s)
+                    </div>
+                    <div class="vl"></div>                    
+                `)
+            """ % (n, againSum, hardSum, goodSum, easySum) )
 
         container += """ 
                 $('head').append(`
@@ -275,3 +284,17 @@ def findNearestTimeMultiple(seconds):
         return str(seconds // 86400) + " days"
     else:
         return str(seconds // 2592000) + " months"
+
+def countNumberOfTimes(i, againSum, hardSum, goodSum, easySum):
+    if i == 1:
+        againSum += 1 # again
+    elif i == 2:
+        hardSum += 1 # hard
+    elif i == 3:
+        goodSum += 1 # good
+    elif i == 4:
+        easySum += 1 # easy
+    else:
+        pass
+
+    return againSum, hardSum, goodSum, easySum
