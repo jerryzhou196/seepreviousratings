@@ -60,15 +60,6 @@ def init(card):
 
                   """ % (combiner)
 
-        javascript = """
-
-              $('#squares').append(
-
-              '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s <br> %s </span> </div>'
-
-              )
-             """
-
         sched = mw.col.schedVer()
 
         # The total number of statistics
@@ -132,11 +123,8 @@ def init(card):
                 }
                 allData.append(singleData)
 
-        limitNum = int(config['limit-number'])
-        for a in range(limitNum):
-            l = len(allData)
-            i = l - limitNum + a
-            container += (javascript % (allData[i]["color"], allData[i]["label"], allData[i]["date"], allData[i]["ease"], allData[i]["interval"], allData[i]["reviewType"]))
+        # add card history to the container
+        container = addCardHistory(allData, container)
 
         if config["show-label"] == "true":
             container += ("""
@@ -315,3 +303,25 @@ def countNumberOfTimes(i, againSum, hardSum, goodSum, easySum):
         pass
 
     return againSum, hardSum, goodSum, easySum
+
+def addCardHistory(allData, container):
+    javascript = """
+
+            $('#squares').append(
+
+            '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s <br> %s </span> </div>'
+
+            )
+            """
+    limitNum = int(config['limit-number'])
+    lenOfallData = len(allData)
+
+    if (limitNum >= lenOfallData):
+        for i in range(lenOfallData):
+            container += javascript % (allData[i]['color'], allData[i]['label'], allData[i]['date'], allData[i]['ease'], allData[i]['interval'], allData[i]['reviewType'])
+    else:
+        for i in range(limitNum):
+            a = lenOfallData - limitNum + i
+            container += javascript % (allData[a]["color"], allData[a]["label"], allData[a]["date"], allData[a]["ease"], allData[a]["interval"], allData[a]["reviewType"])
+
+    return container
