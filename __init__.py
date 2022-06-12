@@ -77,6 +77,9 @@ def init(card):
         goodSum = 0 # good
         easySum = 0 # easy
 
+        # The data of review statistics
+        allData = []
+
         for review in rating_list:
 
             rating = review[0]
@@ -119,7 +122,21 @@ def init(card):
 
                 reviewType = types[rawRevType]
 
-                container += (javascript % (color_id, label, date, ease, interval, reviewType))
+                singleData = {
+                    "color": color_id,
+                    "label": label,
+                    "date": date,
+                    "ease": ease,
+                    "interval": interval,
+                    "reviewType": reviewType,
+                }
+                allData.append(singleData)
+
+        limitNum = int(config['limit-number'])
+        for a in range(limitNum):
+            l = len(allData)
+            i = l - limitNum + a
+            container += (javascript % (allData[i]["color"], allData[i]["label"], allData[i]["date"], allData[i]["ease"], allData[i]["interval"], allData[i]["reviewType"]))
 
         if config["show-label"] == "true":
             container += ("""
