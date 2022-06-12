@@ -10,6 +10,6 @@
   "rated-hard-color": "#D8A700",
   "rated-good-color": "#B9D870",
   "rated-easy-color": "#006344",
-  "only-show-learning-reviews-in-learning-stage": "false"
-
+  "only-show-learning-reviews-in-learning-stage": "false",
+  "limit-number": "5"
 }

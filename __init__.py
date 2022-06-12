@@ -60,24 +60,16 @@ def init(card):
 
                   """ % (combiner)
 
-        javascript = """
-
-              $('#squares').append(
-
-              '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s <br> %s </span> </div>'
-
-              )
-             """
-
-        if config["show-label"] == "true":
-            container += ("""
-               $('#legend').prepend(`
-                    <span class = "legend-label" > Card Rating <br> History </span>    <div class="vl">
-                        </div>
-                `)
-            """)
-
         sched = mw.col.schedVer()
+
+        # The total number of statistics
+        againSum = 0 # again
+        hardSum = 0 # hard
+        goodSum = 0 # good
+        easySum = 0 # easy
+
+        # The data of review statistics
+        allData = []
 
         for review in rating_list:
 
@@ -107,9 +99,11 @@ def init(card):
 
                 if (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
                     off_set = int(rating) + 1
+                    againSum, hardSum, goodSum, easySum = countNumberOfTimes(off_set, againSum, hardSum, goodSum, easySum)
                     color_id = colors[off_set]
                     label = labels[off_set]
                 else:
+                    againSum, hardSum, goodSum, easySum = countNumberOfTimes(rating, againSum, hardSum, goodSum, easySum)
                     color_id = colors[rating]
                     label = labels[rating]
 
@@ -119,7 +113,27 @@ def init(card):
 
                 reviewType = types[rawRevType]
 
-                container += (javascript % (color_id, label, date, ease, interval, reviewType))
+                singleData = {
+                    "color": color_id,
+                    "label": label,
+                    "date": date,
+                    "ease": ease,
+                    "interval": interval,
+                    "reviewType": reviewType,
+                }
+                allData.append(singleData)
+
+        # add card history to the container
+        container = addCardHistory(allData, container)
+
+        if config["show-label"] == "true":
+            container += ("""
+               $('#legend').prepend(`
+                    <div class = "legend-label" > Card Rating <br> History (%s) <br> (%s-%s-%s-%s)
+                    </div>
+                    <div class="vl"></div>                    
+                `)
+            """ % (n, againSum, hardSum, goodSum, easySum) )
 
         container += """ 
                 $('head').append(`
@@ -275,3 +289,39 @@ def findNearestTimeMultiple(seconds):
         return str(seconds // 86400) + " days"
     else:
         return str(seconds // 2592000) + " months"
+
+def countNumberOfTimes(i, againSum, hardSum, goodSum, easySum):
+    if i == 1:
+        againSum += 1 # again
+    elif i == 2:
+        hardSum += 1 # hard
+    elif i == 3:
+        goodSum += 1 # good
+    elif i == 4:
+        easySum += 1 # easy
+    else:
+        pass
+
+    return againSum, hardSum, goodSum, easySum
+
+def addCardHistory(allData, container):
+    javascript = """
+
+            $('#squares').append(
+
+            '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s <br> %s </span> </div>'
+
+            )
+            """
+    limitNum = int(config['limit-number'])
+    lenOfallData = len(allData)
+
+    if (limitNum >= lenOfallData):
+        for i in range(lenOfallData):
+            container += javascript % (allData[i]['color'], allData[i]['label'], allData[i]['date'], allData[i]['ease'], allData[i]['interval'], allData[i]['reviewType'])
+    else:
+        for i in range(limitNum):
+            a = lenOfallData - limitNum + i
+            container += javascript % (allData[a]["color"], allData[a]["label"], allData[a]["date"], allData[a]["ease"], allData[a]["interval"], allData[a]["reviewType"])
+
+    return container
