@@ -6,41 +6,96 @@ import datetime
 
 config = mw.addonManager.getConfig(__name__)
 
-colors = {
-    0: config['manually-forgot-color'],
-    1: config['rated-again-color'],  # again
-    2: config["rated-hard-color"],  # hard
-    3: config["rated-good-color"],  # good
-    4: config["rated-easy-color"]  # easy
+additional_config = {
+  "reviewTypes": {
+    "MANUALLY_FORGOT": {
+      "code": 0,
+      "color": "manually-forgot-color",
+      "label": "Manually <br> FORGOT on",
+      "category": "(Learning)"
+    },
+    "AGAIN": {
+      "code": 1,
+      "color": "rated-again-color",
+      "label": "Rated AGAIN on",
+      "category": "(Review)"
+    },
+    "HARD": {
+      "code": 2,
+      "color": "rated-hard-color",
+      "label": "Rated HARD on",
+      "category": "(Relearning)"
+    },
+    "GOOD": {
+      "code": 3,
+      "color": "rated-good-color",
+      "label": "Rated GOOD on",
+      "category": "(Filtered)"
+    },
+    "EASY": {
+      "code": 4,
+      "color": "rated-easy-color",
+      "label": "Rated EASY on",
+      "category": "(Manual)"
+    },
+    "RESCHEDULED": {
+      "code": 5,
+      "color": "manually-forgot-color",
+      "label": "Rescheduled on",
+      "category": "(Rescheduled)"
+    }
+  },
+  "revlog_types": {
+      0: "(Learning)",
+      1: "(Review)",
+      2: "(Relearning)",
+      3: "(Filtered)",
+      4: "(Manual)",
+      5: "(Rescheduled)"
+  }
 }
 
-labels = {
-    0: "Manually <br> FORGOT on",
-    1: "Rated AGAIN on",  # again
-    2: "Rated HARD on",  # hard
-    3: "Rated GOOD on",  # good
-    4: "Rated EASY on"  # easy
-}
+@dataclass
+class ReviewConfig:
+    """Configuration settings for the add-on"""
+    manually_forgot_color: str
+    rated_again_color: str
+    rated_hard_color: str
+    rated_good_color: str
+    rated_easy_color: str
+    show_label: bool
+    constantly_show_addon: bool
+    vertical_position: str
+    size: str
+    width: str
+    limit_number: int
+    only_show_learning_reviews_in_learning_stage: bool
 
-types = {
-    0: "(Learning)",
-    1: "(Review)",
-    2: "(Relearn)",
-    3: "(Custom Study)",
-    4: ""
-}
+    def __post_init__(self):
+        logger.debug(f"ReviewConfig initialized with: {self.__dict__}")
+
+    def get_color_map(self) -> Dict[int, str]:
+        """Map review ratings to their corresponding colors"""
+        color_map = {
+            0: self.manually_forgot_color,
+            1: self.rated_again_color,
+            2: self.rated_hard_color,
+            3: self.rated_good_color,
+            4: self.rated_easy_color
+        }
+        return color_map
 
 
 def init(card):
     cmd = f"select ease, id, ivl, factor,type from revlog where cid = '{card.id}' ORDER BY id ASC "
     rating_list = mw.col.db.all(cmd)
 
-    regularMode = False if (config["only-show-learning-reviews-in-learning-stage"] == "true") else True
+    regularMode = False if (config.only_show_learning_reviews_in_learning_stage) else True
 
     n = len(rating_list)
 
     if (n > 0):  # check if a card has an previous ratings
-        combiner = "append" if (config["vertical-position"] == "bottom") else "prepend"
+        combiner = "append" if (config.vertical_position == "bottom") else "prepend"
 
         container = """
                   (function(){
@@ -73,13 +128,8 @@ def init(card):
 
         for review in rating_list:
 
-            rating = review[0]
-            timeInMs = review[1]
-            rawIvl = review[2]
-            rawEase = review[3]
-            rawRevType = review[4]
-
             # "raw" means that the data still needs to be converted to a different format
+            rating, timeInMs, rawIvl, rawEase, rawRevType = review
 
             if (timeInMs > 0 and (rawRevType != 0 or rating_list[n - 1][ 4] == 0 or regularMode == True)):  # check if the card rating time is valid
 
