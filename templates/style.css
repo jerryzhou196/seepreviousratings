@@ -1,0 +1,97 @@
+.square {
+    height: 20px!important;
+    width: 20px!important;
+    margin: 5px!important;
+    border-radius: 5px!important;
+}
+
+.night_mode #legend {
+    background-color: #46464A!important;
+}
+
+.tooltip {
+    position: relative!important;
+    display: inline-block!important;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden!important;
+    width: 200px!important;
+    max-width: 700px!important;
+    background-color: black!important;
+    font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace!important;
+    color: #fff!important;
+    text-align: center!important;
+    border-radius: 6px!important;
+    padding: 5px 0!important;
+    position: absolute!important;
+    z-index: 1!important;
+    top: 200%!important;
+    left: 50%!important;
+    font-size: 20px!important;
+    margin-left: -100px!important;
+    line-height: normal!important;
+}
+
+.tooltip .tooltiptext::after {
+    content: ""!important;
+    position: absolute!important;
+    bottom: 100%!important;
+    left: 50%!important;
+    margin-left: -5px!important;
+    border-width: 5px!important;
+    border-style: solid!important;
+    border-color: transparent transparent black transparent!important;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible!important;
+}
+
+#squares {
+    display: flex!important;
+    align-items: center!important;
+    max-width: 660px!important;
+    flex-wrap: wrap!important;
+}
+
+.legend-label {
+    display: flex!important;
+    align-items: center!important;
+    text-align: center!important;
+    font-weight: 1000!important;
+    font-size: 15px!important;
+    font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace!important;
+    padding-left: 8px!important;
+    color: #CACACA!important;
+}
+
+.night_mode .legend-label {
+    color: #75757A!important;
+}
+
+#legend-container {
+    display: flex!important;
+    justify-content: center!important;
+}
+
+.vl {
+    border-left: 2px solid #75757A!important;
+    margin-left: 10px!important;
+    margin-right: 10px!important;
+    align-self: center!important;
+    height: 29px!important;
+}
+
+#legend {
+    direction: ltr!important;
+    display: flex!important;
+    justify-content: center!important;
+    border-radius: 10px!important;
+    width: max-content!important;
+    padding: 5px!important;
+    margin: 20px 0!important;
+    background-color: #F0F0F0!important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)!important;
+    line-height: normal!important;
+}

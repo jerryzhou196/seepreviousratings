@@ -1,0 +1,63 @@
+#legend-container {
+    display: flex;
+    justify-content: center;
+}
+
+#legend {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.legend-label {
+    font-size: 0.8em;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.vl {
+    border-left: 1px solid #ccc;
+    height: 40px;
+    margin: 0 10px;
+}
+
+#squares {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.square {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    position: relative;
+}
+
+.tooltip {
+    position: relative;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+} 
