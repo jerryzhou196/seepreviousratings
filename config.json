@@ -2,14 +2,14 @@
 
   "size": "100%",
   "width": "inherit",
-  "vertical-position": "bottom",
-  "show-label": "true",
-  "constantly-show-addon": "false",
-  "manually-forgot-color": "white",
-  "rated-again-color": "#c03c1c",
-  "rated-hard-color": "#D8A700",
-  "rated-good-color": "#B9D870",
-  "rated-easy-color": "#006344",
-  "only-show-learning-reviews-in-learning-stage": "false",
-  "limit-number": "5"
+  "vertical_position": "bottom",
+  "show_label": "false",
+  "constantly_show_addon": "false",
+  "manually_forgot_color": "white",
+  "rated_again_color": "#c03c1c",
+  "rated_hard_color": "#D8A700",
+  "rated_good_color": "#B9D870",
+  "rated_easy_color": "#006344",
+  "only_show_learning_reviews_in_learning_stage": "true",
+  "limit_number": "30"
 }

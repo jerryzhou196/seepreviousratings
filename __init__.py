@@ -1,17 +1,67 @@
 from aqt import gui_hooks
 from aqt import mw
+from aqt import utils
 import datetime
 
-# import aqt
+class ReviewConfig:
+    """Configuration settings for the add-on"""
+    config: dict = mw.addonManager.getConfig(__name__)
+    size: str = "100%"
+    width: str = "inherit"
+    vertical_position: str = "bottom"
+    show_label: str = "true"
+    constantly_show_addon: str = "false"
+    manually_forgot_color: str = "white"
+    rated_again_color: str = "#c03c1c"
+    rated_hard_color: str = "#D8A700"
+    rated_good_color: str = "#B9D870"
+    rated_easy_color: str = "#006344"
+    only_show_learning_reviews_in_learning_stage: str = "true"
+    limit_number: int = 5
 
-config = mw.addonManager.getConfig(__name__)
+    def __init__(self):
+        try:
+            self.size = self.config.get('size', self.size)
+            self.width = self.config.get('width', self.width)
+            self.vertical_position = self.config.get('vertical_position', self.vertical_position)
+            
+            # Handle boolean string values
+            self.show_label = str(self.config.get('show_label', self.show_label)).lower()
+            self.constantly_show_addon = str(self.config.get('constantly_show_addon', self.constantly_show_addon)).lower()
+            self.only_show_learning_reviews_in_learning_stage = str(self.config.get(
+                'only_show_learning_reviews_in_learning_stage', 
+                self.only_show_learning_reviews_in_learning_stage
+            )).lower()
+            
+            # Handle color values
+            self.manually_forgot_color = self.config.get('manually_forgot_color', self.manually_forgot_color)
+            self.rated_again_color = self.config.get('rated_again_color', self.rated_again_color)
+            self.rated_hard_color = self.config.get('rated_hard_color', self.rated_hard_color)
+            self.rated_good_color = self.config.get('rated_good_color', self.rated_good_color)
+            self.rated_easy_color = self.config.get('rated_easy_color', self.rated_easy_color)
+            
+            # Handle numeric value
+            try:
+                limit_number = self.config.get('limit_number', str(self.limit_number))
+                self.limit_number = int(limit_number.strip())
+            except (ValueError, AttributeError):
+                pass  # Keep default value
+                
+        except Exception as e:
+            utils.showText(f"Warning: There is an invalid config in the See Previous Ratings Addon: {str(e)}")
+
+    def is_true(self, value: str) -> bool:
+        """Convert string boolean to Python boolean"""
+        return value.lower() == "true"
+
+config = ReviewConfig()
 
 colors = {
-    0: config['manually-forgot-color'],
-    1: config['rated-again-color'],  # again
-    2: config["rated-hard-color"],  # hard
-    3: config["rated-good-color"],  # good
-    4: config["rated-easy-color"]  # easy
+    0: config.manually_forgot_color,
+    1: config.rated_again_color,  # again
+    2: config.rated_hard_color,  # hard
+    3: config.rated_good_color,  # good
+    4: config.rated_easy_color  # easy
 }
 
 labels = {
@@ -26,29 +76,40 @@ types = {
     0: "(Learning)",
     1: "(Review)",
     2: "(Relearn)",
-    3: "(Custom Study)",
-    4: ""
+    3: "(Filtered)",
+    4: "(Manual)",
+    5: "(Rescheduled)"
 }
 
 
 def init(card):
-    cmd = f"select ease, id, ivl, factor,type from revlog where cid = '{card.id}' ORDER BY id ASC "
-    rating_list = mw.col.db.all(cmd)
 
-    regularMode = False if (config["only-show-learning-reviews-in-learning-stage"] == "true") else True
+    # Revlog Schema: 
+    # id: Primary key, timestamp in milliseconds
+    # cid: Card ID this review belongs to
+    # usn: Update sequence number used for syncing
+    # ease: Button pressed (1-4) or 0 for manual reschedule
+    # ivl: New interval (positive = days, negative = seconds)
+    # lastIvl: Previous interval
+    # factor: Ease factor (stored as 10x the percentage, e.g. 2500 = 250%)
+    # time: Review time taken in milliseconds
+    # type: Review type (0=learn, 1=review, 2=relearn, 3=filtered, 4=manual, 5=rescheduled)
+    
+    cmd = f"select ease, id, ivl, factor, type from revlog where cid = '{card.id}' ORDER BY id ASC "
+    card_review_history: list[tuple[int, int, int, int, int]] = mw.col.db.all(cmd)
 
-    n = len(rating_list)
+    n = len(card_review_history)
 
-    if (n > 0):  # check if a card has an previous ratings
-        combiner = "append" if (config["vertical-position"] == "bottom") else "prepend"
+    if (n > 0):  
+        combiner = "append" if (config.vertical_position == "bottom") else "prepend"
 
+        # Remove the legend if it exists
+        # Create a new legend container
         container = """
                   (function(){
                       $('#legend').remove()
                       $("#legend-container").remove()
                       $('body').%s(`
-
-
                       <div id = "legend-container">
                          <div id = "legend">  
                               <div id = "squares">
@@ -71,20 +132,43 @@ def init(card):
         # The data of review statistics
         allData = []
 
-        for review in rating_list:
+        for review in card_review_history:
 
-            rating = review[0]
-            timeInMs = review[1]
-            rawIvl = review[2]
-            rawEase = review[3]
-            rawRevType = review[4]
+            # Rating Number Mapping 
+            # 0: Manually FORGOT
+            # 1: Rated AGAIN
+            # 2: Rated HARD
+            # 3: Rated GOOD
+            # 4: Rated EASY
+            # 5: Rescheduled
+            rating: int = review[0]
 
-            # "raw" means that the data still needs to be converted to a different format
+            # Time in milliseconds when the card was reviewed
+            reviewDateMs: int = review[1]
 
-            if (timeInMs > 0 and (rawRevType != 0 or rating_list[n - 1][ 4] == 0 or regularMode == True)):  # check if the card rating time is valid
+            # New Interval After Review
+            rawIvl: int = review[2]
 
-                # if the review type is 0, the card is not in learning stage, and special mode is on
+            # Ease factor
+            rawEase: int = review[3]
 
+            # Review Type
+            # 0: Learning
+            # 1: Review
+            # 2: Relearn
+            # 3: Filtered
+            # 4: Manual
+            # 5: Rescheduled
+            rawRevType: int = review[4]
+                
+            if (reviewDateMs > 0):  # check if the card rating time is valid
+
+                # if the review type is 0, the card is not in learning stage, and it's been explictly configured to be on 
+                if (config.is_true(config.only_show_learning_reviews_in_learning_stage) and 
+                    rawRevType == 0 and 
+                    card_review_history[n - 1][4] != 0):
+                    continue
+                    
                 if (rawIvl < 0):  # if the interval is negative, it is expressed in seconds (learning steps)
                     interval = findNearestTimeMultiple(abs(rawIvl)) + ""  # convert seconds to nearest multiple
                 elif (rawIvl < 30):  # if the interval is positive, it is expressed in days
@@ -107,9 +191,7 @@ def init(card):
                     color_id = colors[rating]
                     label = labels[rating]
 
-                date = datetime.datetime.fromtimestamp(timeInMs / 1000).strftime('%Y-%m-%d <br> %I:%M %p')
-
-                # aqt.utils.showText(str(element[4]))
+                date = datetime.datetime.fromtimestamp(reviewDateMs / 1000).strftime('%Y-%m-%d <br> %I:%M %p')
 
                 reviewType = types[rawRevType]
 
@@ -121,19 +203,20 @@ def init(card):
                     "interval": interval,
                     "reviewType": reviewType,
                 }
+
                 allData.append(singleData)
 
         # add card history to the container
         container = addCardHistory(allData, container)
 
-        if config["show-label"] == "true":
+        if config.show_label == "true":
             container += ("""
                $('#legend').prepend(`
-                    <div class = "legend-label" > Card Rating <br> History (%s) <br> (%s-%s-%s-%s)
+                    <div class = "legend-label" > Card Rating <br> History <br> 
                     </div>
                     <div class="vl"></div>                    
                 `)
-            """ % (n, againSum, hardSum, goodSum, easySum) )
+            """)
 
         container += """ 
                 $('head').append(`
@@ -245,11 +328,9 @@ def init(card):
         user_changeable = '''
             width: %s!important;
             zoom: %s!important;
-        ''' % (config["width"], config["size"])
+        ''' % (config.width, config.size)
 
         container += (user_changeable + closing_tag)
-
-        # aqt.utils.showText(str(mw.col.schedVer()))
 
     else:
         container = """ (function(){
@@ -269,7 +350,7 @@ def unInit(card):
         })()
     """)
 
-if (config["constantly-show-addon"] == "true"):
+if (config.constantly_show_addon == "true"):
     gui_hooks.reviewer_did_show_question.append(init)
     gui_hooks.reviewer_did_show_answer.append(init)
 
@@ -313,15 +394,9 @@ def addCardHistory(allData, container):
 
             )
             """
-    limitNum = int(config['limit-number'])
     lenOfallData = len(allData)
 
-    if (limitNum >= lenOfallData):
-        for i in range(lenOfallData):
-            container += javascript % (allData[i]['color'], allData[i]['label'], allData[i]['date'], allData[i]['ease'], allData[i]['interval'], allData[i]['reviewType'])
-    else:
-        for i in range(limitNum):
-            a = lenOfallData - limitNum + i
-            container += javascript % (allData[a]["color"], allData[a]["label"], allData[a]["date"], allData[a]["ease"], allData[a]["interval"], allData[a]["reviewType"])
+    for i in range(lenOfallData - 1, max(-1, lenOfallData - config.limit_number - 1), -1):
+        container += javascript % (allData[i]["color"], allData[i]["label"], allData[i]["date"], allData[i]["ease"], allData[i]["interval"], allData[i]["reviewType"])
 
     return container
