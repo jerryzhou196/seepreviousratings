@@ -11,5 +11,6 @@
   "rated_good_color": "#B9D870",
   "rated_easy_color": "#006344",
   "only_show_learning_reviews_in_learning_stage": "true",
+  "dont_show_reviews_before_manually_forgot": "false",
   "limit_number": "30"
 }

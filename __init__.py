@@ -17,6 +17,7 @@ class ReviewConfig:
     rated_good_color: str = "#B9D870"
     rated_easy_color: str = "#006344"
     only_show_learning_reviews_in_learning_stage: str = "true"
+    dont_show_reviews_before_manually_forgot: str = "false"
     limit_number: int = 5
 
     def __init__(self):
@@ -31,6 +32,11 @@ class ReviewConfig:
             self.only_show_learning_reviews_in_learning_stage = str(self.config.get(
                 'only_show_learning_reviews_in_learning_stage', 
                 self.only_show_learning_reviews_in_learning_stage
+            )).lower()
+
+            self.dont_show_reviews_before_manually_forgot = str(self.config.get(
+                'dont_show_reviews_before_manually_forgot', 
+                self.dont_show_reviews_before_manually_forgot
             )).lower()
             
             # Handle color values
@@ -181,6 +187,10 @@ def init(card):
                 else:
                     ease = "N/A"
 
+                if (config.is_true(config.dont_show_reviews_before_manually_forgot) and rating == 0):
+                    allData = []
+                    continue
+
                 if (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
                     off_set = int(rating) + 1
                     againSum, hardSum, goodSum, easySum = countNumberOfTimes(off_set, againSum, hardSum, goodSum, easySum)
@@ -205,11 +215,14 @@ def init(card):
                 }
 
                 allData.append(singleData)
+        
+        if (len(allData) == 0):
+            return
 
         # add card history to the container
         container = addCardHistory(allData, container)
 
-        if config.show_label == "true":
+        if config.is_true(config.show_label):
             container += ("""
                $('#legend').prepend(`
                     <div class = "legend-label" > Card Rating <br> History <br> 
@@ -350,7 +363,7 @@ def unInit(card):
         })()
     """)
 
-if (config.constantly_show_addon == "true"):
+if config.is_true(config.constantly_show_addon):
     gui_hooks.reviewer_did_show_question.append(init)
     gui_hooks.reviewer_did_show_answer.append(init)
 
