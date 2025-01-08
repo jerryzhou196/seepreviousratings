@@ -1,9 +1,9 @@
 {
-
+  "show_label": "true",
+  "limit_number": "30",
   "size": "100%",
   "width": "inherit",
   "vertical_position": "bottom",
-  "show_label": "true",
   "constantly_show_addon": "false",
   "manually_forgot_color": "white",
   "rated_again_color": "#c03c1c",
@@ -12,5 +12,4 @@
   "rated_easy_color": "#006344",
   "only_show_learning_reviews_in_learning_stage": "true",
   "dont_show_reviews_before_manually_forgot": "false",
-  "limit_number": "30"
 }
