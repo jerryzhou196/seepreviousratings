@@ -127,7 +127,7 @@ def init(card):
 
                   """ % (combiner)
 
-        sched = mw.col.schedVer()
+        sched = mw.col.sched_ver()
 
         # The total number of statistics
         againSum = 0 # again
@@ -400,16 +400,15 @@ def countNumberOfTimes(i, againSum, hardSum, goodSum, easySum):
 
 def addCardHistory(allData, container):
     javascript = """
-
             $('#squares').append(
-
             '<div class = "square tooltip" style = "background-color: %s">  <span class="tooltiptext">%s <br> %s <br> <br> Ease: %s <br> Ivl: %s <br> %s </span> </div>'
-
             )
             """
     lenOfallData = len(allData)
-
-    for i in range(lenOfallData - 1, max(-1, lenOfallData - config.limit_number - 1), -1):
-        container += javascript % (allData[i]["color"], allData[i]["label"], allData[i]["date"], allData[i]["ease"], allData[i]["interval"], allData[i]["reviewType"])
+    start_idx = max(0, lenOfallData - config.limit_number)
+    
+    for i in range(start_idx, lenOfallData):
+        container += javascript % (allData[i]["color"], allData[i]["label"], allData[i]["date"], 
+                                 allData[i]["ease"], allData[i]["interval"], allData[i]["reviewType"])
 
     return container
