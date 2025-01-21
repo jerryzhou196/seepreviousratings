@@ -3,7 +3,7 @@
   "dont_show_reviews_before_manually_forgot": "false",
   "limit_number": "30",
   "manually_forgot_color": "white",
-  "only_show_learning_reviews_in_learning_stage": "true",
+  "only_show_learning_reviews_in_learning_stage": "fal",
   "rated_again_color": "#c03c1c",
   "rated_easy_color": "#006344",
   "rated_good_color": "#B9D870",
