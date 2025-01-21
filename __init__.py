@@ -16,9 +16,9 @@ class ReviewConfig:
     rated_hard_color: str = "#D8A700"
     rated_good_color: str = "#B9D870"
     rated_easy_color: str = "#006344"
-    only_show_learning_reviews_in_learning_stage: str = "true"
+    only_show_learning_reviews_in_learning_stage: str = "false"
     dont_show_reviews_before_manually_forgot: str = "false"
-    limit_number: int = 5
+    limit_number: int = 30 
 
     def __init__(self):
         try:
