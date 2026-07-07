@@ -14,6 +14,7 @@ class ReviewConfig:
     show_drop_shadow: str = "false"
     constantly_show_addon: str = "false"
     manually_forgot_color: str = "white"
+    rescheduled_color: str = "black"
     rated_again_color: str = "#c03c1c"
     rated_hard_color: str = "#D8A700"
     rated_good_color: str = "#B9D870"
@@ -57,6 +58,7 @@ class ReviewConfig:
             
             # Handle color values
             self.manually_forgot_color = self.config.get('manually_forgot_color', self.manually_forgot_color)
+            self.rescheduled_color = self.config.get('rescheduled_color', self.rescheduled_color)
             self.rated_again_color = self.config.get('rated_again_color', self.rated_again_color)
             self.rated_hard_color = self.config.get('rated_hard_color', self.rated_hard_color)
             self.rated_good_color = self.config.get('rated_good_color', self.rated_good_color)
@@ -93,7 +95,8 @@ colors = {
     1: config.rated_again_color,  # again
     2: config.rated_hard_color,  # hard
     3: config.rated_good_color,  # good
-    4: config.rated_easy_color  # easy
+    4: config.rated_easy_color,  # easy
+    5: config.rescheduled_color  # rescheduled
 }
 
 labels = {
@@ -101,7 +104,8 @@ labels = {
     1: "Rated AGAIN on",  # again
     2: "Rated HARD on",  # hard
     3: "Rated GOOD on",  # good
-    4: "Rated EASY on"  # easy
+    4: "Rated EASY on",  # easy
+    5: "Rescheduled on"  # rescheduled
 }
 
 types = {
@@ -194,6 +198,8 @@ def init(card):
             # 4: Manual
             # 5: Rescheduled
             rawRevType: int = review[4]
+            is_manually_forgotten = rating == 0 and rawRevType == 4
+            is_rescheduled = rawRevType == 5
                 
             if (reviewDateMs > 0):  # check if the card rating time is valid
 
@@ -215,19 +221,21 @@ def init(card):
                 else:
                     ease = "N/A"
 
-                if (config.is_true(config.dont_show_reviews_before_manually_forgot) and rating == 0):
+                if (config.is_true(config.dont_show_reviews_before_manually_forgot) and is_manually_forgotten):
                     allData = []
                     continue
 
                 if (config.is_true(config.hide_manually_forgotten_entries) and
-                    rating == 0 and
-                    rawRevType == 4):
+                    is_manually_forgotten):
                     continue
 
-                if (config.is_true(config.hide_rescheduled_entries) and rawRevType == 5):
+                if (config.is_true(config.hide_rescheduled_entries) and is_rescheduled):
                     continue
 
-                if (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
+                if (is_rescheduled):
+                    color_id = colors[5]
+                    label = labels[5]
+                elif (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1
                     off_set = int(rating) + 1
                     againSum, hardSum, goodSum, easySum = countNumberOfTimes(off_set, againSum, hardSum, goodSum, easySum)
                     color_id = colors[off_set]

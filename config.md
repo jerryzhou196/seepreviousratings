@@ -64,6 +64,11 @@
 - Default: "#D8A700"
 - Accepts CSS color values
 
+#### `rescheduled_color`
+- Color for rescheduled entries
+- Default: "black"
+- Accepts CSS color values
+
 #### `show_drop_shadow`
 - Controls the drop shadow behind the rating history legend
 - Default: "false"

@@ -11,6 +11,7 @@
   "rated_easy_color": "#006344",
   "rated_good_color": "#B9D870",
   "rated_hard_color": "#D8A700",
+  "rescheduled_color": "black",
   "show_drop_shadow": "false",
   "show_label": "false",
   "size": "100%",
