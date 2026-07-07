@@ -9,7 +9,9 @@ class ReviewConfig:
     size: str = "100%"
     width: str = "inherit"
     vertical_position: str = "bottom"
-    show_label: str = "true"
+    overlay_position: str = "top-right"
+    show_label: str = "false"
+    show_drop_shadow: str = "false"
     constantly_show_addon: str = "false"
     manually_forgot_color: str = "white"
     rated_again_color: str = "#c03c1c"
@@ -24,10 +26,12 @@ class ReviewConfig:
         try:
             self.size = self.config.get('size', self.size)
             self.width = self.config.get('width', self.width)
-            self.vertical_position = self.config.get('vertical_position', self.vertical_position)
+            self.vertical_position = str(self.config.get('vertical_position', self.vertical_position)).lower()
+            self.overlay_position = str(self.config.get('overlay_position', self.overlay_position)).lower()
             
             # Handle boolean string values
             self.show_label = str(self.config.get('show_label', self.show_label)).lower()
+            self.show_drop_shadow = str(self.config.get('show_drop_shadow', self.show_drop_shadow)).lower()
             self.constantly_show_addon = str(self.config.get('constantly_show_addon', self.constantly_show_addon)).lower()
             self.only_show_learning_reviews_in_learning_stage = str(self.config.get(
                 'only_show_learning_reviews_in_learning_stage', 
@@ -59,6 +63,16 @@ class ReviewConfig:
     def is_true(self, value: str) -> bool:
         """Convert string boolean to Python boolean"""
         return value.lower() == "true"
+
+    def is_overlay_position(self) -> bool:
+        """Return whether the history should float over the reviewer."""
+        return self.vertical_position == "overlay"
+
+    def overlay_position_class(self) -> str:
+        """Return the supported overlay corner class."""
+        if self.overlay_position == "top-left":
+            return "legend-overlay-top-left"
+        return "legend-overlay-top-right"
 
 config = ReviewConfig()
 
@@ -107,7 +121,9 @@ def init(card):
     n = len(card_review_history)
 
     if (n > 0):  
-        combiner = "append" if (config.vertical_position == "bottom") else "prepend"
+        is_overlay = config.is_overlay_position()
+        combiner = "append" if (is_overlay or config.vertical_position == "bottom") else "prepend"
+        legend_container_class = "legend-overlay " + config.overlay_position_class() if is_overlay else ""
 
         # Remove the legend if it exists
         # Create a new legend container
@@ -116,7 +132,7 @@ def init(card):
                       $('#legend').remove()
                       $("#legend-container").remove()
                       $('body').%s(`
-                      <div id = "legend-container">
+                      <div id = "legend-container" class = "%s">
                          <div id = "legend">  
                               <div id = "squares">
                                </div> 
@@ -125,7 +141,7 @@ def init(card):
 
                       `)
 
-                  """ % (combiner)
+                  """ % (combiner, legend_container_class)
 
         sched = mw.col.sched_ver()
 
@@ -311,6 +327,35 @@ def init(card):
                     justify-content: center !important;
                 }
 
+                #legend-container.legend-overlay{
+                    position: fixed !important;
+                    z-index: 9999 !important;
+                    top: 12px !important;
+                    max-width: calc(100vw - 24px) !important;
+                    pointer-events: none !important;
+                }
+
+                #legend-container.legend-overlay-top-left{
+                    left: 12px !important;
+                    right: auto !important;
+                }
+
+                #legend-container.legend-overlay-top-right{
+                    right: 12px !important;
+                    left: auto !important;
+                }
+
+                #legend-container.legend-overlay #legend{
+                    margin-top: 0 !important;
+                    margin-bottom: 0 !important;
+                    max-width: calc(100vw - 24px) !important;
+                    pointer-events: auto !important;
+                }
+
+                #legend-container.legend-overlay #squares{
+                    max-width: min(660px, calc(100vw - 24px)) !important;
+                }
+
                  .vl {
                     border-left: 2px solid #75757A !important;
                     margin-left: 10px !important;
@@ -332,7 +377,12 @@ def init(card):
                     padding-right: 5px !important;
                     border-radius: 10px !important;
                     background-color: #F0F0F0 !important;
-                    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) !important;
+                 """
+
+        if config.is_true(config.show_drop_shadow):
+            container += "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) !important;"
+
+        container += """
                     line-height: normal !important;
                  """
 

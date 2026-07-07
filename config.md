@@ -1,4 +1,4 @@
-**If you are here to remove the "Card Rating History" label, change <i> Show Label </i> to "false"** 
+**The "Card Rating History" label is hidden by default. To show it, change <i> Show Label </i> to "true"**
 
 ### Configuration Options
 
@@ -28,6 +28,12 @@
 - Default: "true"
 - When "true", only shows learning reviews for cards currently in learning
 
+#### `overlay_position`
+- Controls which corner the rating history uses when `vertical_position` is "overlay"
+- Default: "top-right"
+- Valid values: "top-left" or "top-right"
+- Overlay placement floats over the card instead of taking up layout space
+
 #### `rated_again_color`
 - Color for cards rated "Again"
 - Default: "#c03c1c"
@@ -48,9 +54,14 @@
 - Default: "#D8A700"
 - Accepts CSS color values
 
+#### `show_drop_shadow`
+- Controls the drop shadow behind the rating history legend
+- Default: "false"
+- Valid values: "true" or "false"
+
 #### `show_label`
 - Controls visibility of the "Card Rating History" label
-- Default: "true"
+- Default: "false"
 - Valid values: "true" or "false"
 
 #### `size`
@@ -59,9 +70,9 @@
 - Uses percentage values (e.g., "75%", "150%")
 
 #### `vertical_position`
-- Determines whether the rating history appears at the top or bottom of the reviewer
+- Determines whether the rating history appears inline or floats over the reviewer
 - Default: "bottom"
-- Valid values: "top" or "bottom"
+- Valid values: "top", "bottom", or "overlay"
 
 #### `width`
 - Controls the width of the rating history display
