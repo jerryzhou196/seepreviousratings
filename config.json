@@ -1,6 +1,8 @@
 {
   "constantly_show_addon": "false",
   "dont_show_reviews_before_manually_forgot": "false",
+  "hide_manually_forgotten_entries": "false",
+  "hide_rescheduled_entries": "false",
   "limit_number": "30",
   "manually_forgot_color": "white",
   "only_show_learning_reviews_in_learning_stage": "false",

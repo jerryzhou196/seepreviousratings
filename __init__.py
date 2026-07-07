@@ -20,6 +20,8 @@ class ReviewConfig:
     rated_easy_color: str = "#006344"
     only_show_learning_reviews_in_learning_stage: str = "false"
     dont_show_reviews_before_manually_forgot: str = "false"
+    hide_manually_forgotten_entries: str = "false"
+    hide_rescheduled_entries: str = "false"
     limit_number: int = 30 
 
     def __init__(self):
@@ -41,6 +43,16 @@ class ReviewConfig:
             self.dont_show_reviews_before_manually_forgot = str(self.config.get(
                 'dont_show_reviews_before_manually_forgot', 
                 self.dont_show_reviews_before_manually_forgot
+            )).lower()
+
+            self.hide_manually_forgotten_entries = str(self.config.get(
+                'hide_manually_forgotten_entries',
+                self.hide_manually_forgotten_entries
+            )).lower()
+
+            self.hide_rescheduled_entries = str(self.config.get(
+                'hide_rescheduled_entries',
+                self.hide_rescheduled_entries
             )).lower()
             
             # Handle color values
@@ -205,6 +217,14 @@ def init(card):
 
                 if (config.is_true(config.dont_show_reviews_before_manually_forgot) and rating == 0):
                     allData = []
+                    continue
+
+                if (config.is_true(config.hide_manually_forgotten_entries) and
+                    rating == 0 and
+                    rawRevType == 4):
+                    continue
+
+                if (config.is_true(config.hide_rescheduled_entries) and rawRevType == 5):
                     continue
 
                 if (sched == 1 and rawRevType != 1 and rating != 1):  # case in 2.0 scheduler where there is no "hard" option, which requires all buttons other than "again" to offset up by 1

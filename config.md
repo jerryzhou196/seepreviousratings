@@ -13,6 +13,16 @@
 - Default: "false"
 - When "true", clears history before manually forgotten cards
 
+#### `hide_manually_forgotten_entries`
+- Controls whether manually forgotten entries are hidden from the rating history
+- Default: "false"
+- Valid values: "true" or "false"
+
+#### `hide_rescheduled_entries`
+- Controls whether rescheduled entries are hidden from the rating history
+- Default: "false"
+- Valid values: "true" or "false"
+
 #### `limit_number`
 - Maximum number of review history squares to display
 - Default: "30"
